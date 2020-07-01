@@ -120,7 +120,7 @@ wsServer.on("connection", c => {
                     break;
                 case "MESSAGE":
                     if (Date.now() <= lastMsg + 500) { // check cooldown
-                        let msg = data.map((t, idx) => idx > 0).join("|");
+                        let msg = data.filter((t, idx) => idx > 0).join("|");
                         if (data.length === 2 && sendMsg(msg)) // how to make top quality spag- I mean code
                             lastMsg = Date.now(); // where did we sanitize? oh...
                         else
