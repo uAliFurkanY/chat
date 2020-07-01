@@ -5,6 +5,7 @@ if (!server) {
     request.send(null);
     server = (location.protocol === "https:" ? "wss://" : "ws://") + location.hostname + ":" + (+request.response || 4565);
 }
+let ws;
 
 let loginForm = document.querySelector("form#login");
 let msgForm = document.querySelector("form#msg");
@@ -42,7 +43,7 @@ loginForm.onsubmit = e => {
     e.preventDefault();
     let name = loginForm.name.value;
     server = loginForm.url.value;
-    let ws = getWs(() => ws.send(name));
+    ws = getWs(() => ws.send(name));
 
 }
 msgForm.onsubmit = e => {
