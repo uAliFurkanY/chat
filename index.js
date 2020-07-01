@@ -29,7 +29,7 @@ const uuid = require("uuid");
 
 const WS_PORT = process.env.WS_PORT || 4565, // Constants with config
     HTTP_HOST = process.env.HTTP_HOST || "0.0.0.0",
-    HTTP_PORT = process.env.HTTP_PORT || 80,
+    HTTP_PORT = process.env.HTTP_PORT || 3000,
     VERSION = "0.1.0-alpha",
     DEBUG = true;
 
@@ -62,7 +62,7 @@ function getIndex(val, type = "ID") { // copied from old code
 
 function broadcast(msg) { // copied from old code
     console.log(msg);
-    users.forEach(async user => user.c.write(msg + "\n"));
+    users.forEach(async user => user.c.send(msg + "\n"));
 }
 function sendMsg(name, message) { // no comment
     message = message.toString().trim(); // overengineering
@@ -119,9 +119,9 @@ wsServer.on("connection", c => {
                     c.send("VERSION|" + VERSION); // send the user the version constant
                     break;
                 case "MESSAGE":
-                    if (Date.now() <= lastMsg + 500) { // check cooldown
+                    if (Date.now() > lastMsg + 500) { // check cooldown
                         let msg = data.filter((t, idx) => idx > 0).join("|");
-                        if (data.length === 2 && sendMsg(msg)) // how to make top quality spag- I mean code
+                        if (data.length >= 2 && sendMsg(name, msg)) // how to make top quality spag- I mean code
                             lastMsg = Date.now(); // where did we sanitize? oh...
                         else
                             c.write("WARN_INVALID_MSG");
@@ -153,5 +153,7 @@ app.use(                                        // This
         )                                       // And
     )                                           // Bad
 );                                              // Practice
+
+app.get("/port", (req, res) => res.send(WS_PORT.toString())); // this is 'required'
 
 app.listen(HTTP_PORT, HTTP_HOST); // Start HTTP server

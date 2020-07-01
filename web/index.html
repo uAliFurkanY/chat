@@ -9,11 +9,30 @@
     <link rel='stylesheet' type='text/css' media='screen'
         href='https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css'>
     <script src='https://cdn.jsdelivr.net/npm/sweetalert2@9'></script>
-    <script src='main.js'></script>
+    <script src="main.js" defer></script>
+    <style>
+        [hide] {
+            display: none;
+        }
+    </style>
 </head>
 
 <body>
-
+    <div class="w-75 border border-primary rounded mx-auto mt-1 p-2" id="root">
+        <h3>Chat</h3>
+        <div class="border border-secondary p-1" id="chat">
+            Messages will appear here.
+        </div>
+        <br>
+        <form id="login">
+            <input type="text" name="name" placeholder="Enter username here..." class="form-control mb-1" required>
+            <button class="form-control btn btn-primary" type="submit">Send</button>
+        </form>
+        <form id="msg" hide>
+            <input type="text" name="msg" placeholder="Enter message here..." class="form-control mb-1" required>
+            <button class="form-control btn btn-primary" type="submit">Send</button>
+        </form>
+    </div>
 </body>
 
 </html>
