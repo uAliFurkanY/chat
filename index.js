@@ -27,16 +27,13 @@ const express = require("express");
 const { isObject, isArray } = require("util");
 const uuid = require("uuid");
 
-const WS_PORT = process.env.WS_PORT || 4565, // Constants with config
+const WS_HOST = process.env.WS_HOST || "0.0.0.0", // Constants with config
+    WS_PORT = process.env.WS_PORT || 4565,
     HTTP_HOST = process.env.HTTP_HOST || "0.0.0.0",
     HTTP_PORT = process.env.HTTP_PORT || 3000,
     WS_ONLY = process.env.WS_ONLY || false,
     VERSION = "0.1.0-alpha",
     DEBUG = true;
-
-const wsServer = new ws.Server({ // Start WS server
-    port: WS_PORT
-});
 
 const users = [];
 
@@ -74,6 +71,13 @@ function sendMsg(name, message) { // no comment
     } else
         return false;
 }
+
+const wsServer = new ws.Server({ // Start WS server
+    port: WS_PORT,
+    host: WS_HOST
+}, () => {
+    console.log("WebSockets Server Listening on " + WS_HOST + ":" + WS_PORT);
+});
 
 wsServer.on("connection", c => {
     let i = 0;
@@ -157,5 +161,7 @@ if (!WS_ONLY) {
 
     app.get("/port", (req, res) => res.send(WS_PORT.toString())); // this is 'required'
 
-    app.listen(HTTP_PORT, HTTP_HOST); // Start HTTP server
+    app.listen(HTTP_PORT, HTTP_HOST, () => {  // Start HTTP server
+        console.log("HTTP Server Listening on " + HTTP_HOST + ":" + HTTP_PORT);
+    });
 }

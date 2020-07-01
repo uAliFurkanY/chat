@@ -1,7 +1,11 @@
-const request = new XMLHttpRequest();
-request.open('GET', '/port', false);  // `false` makes the request synchronous
-request.send(null);
-let server = location.hash.substr(1) || (location.protocol === "https:" ? "wss://" : "ws://") + location.hostname + ":" + request.response;
+let server = location.hash.substr(1);
+if (!server) {
+    const request = new XMLHttpRequest();
+    request.open('GET', '/port', false);  // `false` makes the request synchronous
+    request.send(null);
+    server = (location.protocol === "https:" ? "wss://" : "ws://") + location.hostname + ":" + (+request.response || 4565);
+}
+
 let loginForm = document.querySelector("form#login");
 let msgForm = document.querySelector("form#msg");
 let chatDiv = document.querySelector("div#chat");
