@@ -1,10 +1,12 @@
 const request = new XMLHttpRequest();
 request.open('GET', '/port', false);  // `false` makes the request synchronous
 request.send(null);
-
+let server = location.hash.substr(1) || (location.protocol === "https:" ? "wss://" : "ws://") + location.hostname + ":" + request.response;
 let loginForm = document.querySelector("form#login");
 let msgForm = document.querySelector("form#msg");
 let chatDiv = document.querySelector("div#chat");
+
+loginForm.url.value = server;
 
 function escapeHtml(string) {
     let entityMap = {
@@ -22,18 +24,22 @@ function escapeHtml(string) {
     });
 }
 
-const getWs = () => {
-    let _ws = new WebSocket("ws://" + location.hostname + ":" + request.response);
+function getWs(func) {
+    let _ws = new WebSocket(server);
+    console.log("Connecting to: " + server);
     _ws.onmessage = msgHandler;
     _ws.onclose = ws_closed;
+    _ws.onerror = alert;
+    _ws.onopen = func;
     return _ws;
 };
-let ws = getWs();
 
 loginForm.onsubmit = e => {
     e.preventDefault();
     let name = loginForm.name.value;
-    ws.send(name);
+    server = loginForm.url.value;
+    let ws = getWs(() => ws.send(name));
+
 }
 msgForm.onsubmit = e => {
     e.preventDefault();

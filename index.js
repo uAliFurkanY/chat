@@ -30,6 +30,7 @@ const uuid = require("uuid");
 const WS_PORT = process.env.WS_PORT || 4565, // Constants with config
     HTTP_HOST = process.env.HTTP_HOST || "0.0.0.0",
     HTTP_PORT = process.env.HTTP_PORT || 3000,
+    WS_ONLY = process.env.WS_ONLY || false,
     VERSION = "0.1.0-alpha",
     DEBUG = true;
 
@@ -144,18 +145,17 @@ wsServer.on("connection", c => {
     });
 });
 
-if (DEBUG)
-    setInterval(() => console.log(users), 1000);
+if (!WS_ONLY) {
+    const app = express();
+    app.use(                                        // This
+        express.static(                             // Is
+            path.resolve(                           // Technically
+                path.join(__dirname || ".", "web")  // Useless
+            )                                       // And
+        )                                           // Bad
+    );                                              // Practice
 
-const app = express();
-app.use(                                        // This
-    express.static(                             // Is
-        path.resolve(                           // Technically
-            path.join(__dirname || ".", "web")  // Useless
-        )                                       // And
-    )                                           // Bad
-);                                              // Practice
+    app.get("/port", (req, res) => res.send(WS_PORT.toString())); // this is 'required'
 
-app.get("/port", (req, res) => res.send(WS_PORT.toString())); // this is 'required'
-
-app.listen(HTTP_PORT, HTTP_HOST); // Start HTTP server
+    app.listen(HTTP_PORT, HTTP_HOST); // Start HTTP server
+}
