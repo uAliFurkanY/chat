@@ -81,18 +81,17 @@ wsServer.on("connection", c => {
     let lastMsg = Date.now();
 
     c.on("message", m => {
+        m = m.trim(); // trim the message
         let data = m.split("|"); // message data
         i++; // packet count
-        m = m.trim(); // trim the message
         DEBUG ? console.log(m) : false; // only for debugging
 
         if (i === 1) {
             // user wants to have a name
             if (validName(m)) {
                 if (users.findIndex(usr => usr.name === m) > -1) {
-                    c.send("ERR_NAME_TAKEN");
-                    c.close();
-                    c.emit("close");
+                    c.send("NAME_TAKEN");
+                    i = 0;
                 } else {
                     name = m; // name the user in the current scope
                     users.push({ // add the user to the users list
@@ -144,6 +143,9 @@ wsServer.on("connection", c => {
             console.error("Error while removing user with id " + id);
     });
 });
+
+if (DEBUG)
+    setInterval(() => console.log(users), 1000);
 
 const app = express();
 app.use(                                        // This
