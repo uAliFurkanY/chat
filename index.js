@@ -31,13 +31,13 @@ const WS_HOST = process.env.WS_HOST || "0.0.0.0", // Constants with config
     HTTP_HOST = process.env.HTTP_HOST || "0.0.0.0",
     HTTP_PORT = process.env.HTTP_PORT || 3000,
     WS_ONLY = process.env.WS_ONLY || false,
-    VERSION = process.env.VERSION || "1.4.0",
+    VERSION = process.env.VERSION || "2.0.0",
     DEBUG = process.env.DEBUG || false;
 
 const users = [];
 
 const validMsg = str => str.length <= 1024 && str.length > 0,
-    validName = str => /[a-zA-Z0-9_-]{3,24}/.test(str);
+    validName = str => /^[a-zA-Z0-9_-]{3,24}$/.test(str);
 
 function removeUser(id) { // copied from old code
     try {
@@ -84,40 +84,42 @@ wsServer.on("connection", c => {
     let id = uuid.v4();
     let name;
     let lastMsg = Date.now();
+    let logged = false;
     c.send("VERSION|" + VERSION); // send the user the version constant
 
     c.on("message", m => {
         m = m.trim(); // trim the message
         let data = m.split("|"); // message data
         let invalid = false;
-        i++; // packet count
 
-        if (i === 1) {
+        if (data[0] === "NAME") {
             // user wants to have a name
-            if (validName(m)) {
-                if (users.findIndex(usr => usr.name === m) > -1) {
+            if (validName(data[1])) {
+                if (users.findIndex(usr => usr.name === data[1]) > -1) {
                     c.send("NAME_TAKEN");
-                    i = 0;
                     invalid = true;
                 } else {
-                    name = m; // name the user in the current scope
-                    users.push({ // add the user to the users list
-                        id: id,
-                        c: c,
-                        name: name
-                    });
+                    name = data[1]; // name the user in the current scope
+                    if (!logged) {
+                        users.push({ // add the user to the users list
+                            id: id,
+                            c: c,
+                            name: name
+                        });
+                        broadcast("USER_JOIN|" + name);
+                    } else {
+                        users[getIndex(id)].name = name;
+                    }
                     c.send("NAME_OK");
-                    broadcast("USER_JOIN|" + name);
+                    logged = true; // make the client accept packets from the user
                 }
             } else {
-                c.send("ERR_INVALID_NAME");
-                i = 0;
+                c.send("INVALID_NAME");
                 invalid = true;
             }
-        } else {
+        } else if (logged) {
             // get packet info
-            let data = m.split("|"); // I couldn't write a comment for this sorry
-            // working on more packets
+            // todo: more packets
             switch (data[0]) {
                 case "MESSAGE":
                     if (Date.now() > lastMsg + 500) { // check cooldown
@@ -135,6 +137,9 @@ wsServer.on("connection", c => {
                     c.send("WARN_INVALID_PACKET");
                     break;
             }
+        } else {
+            c.send("WARN_INVALID_PACKET");
+            invalid = true;
         }
         (DEBUG && !invalid) ? console.log("[<] " + (name ? name : "?") + " " + m) : false; // only for debugging
     });

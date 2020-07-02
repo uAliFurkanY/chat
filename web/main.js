@@ -1,14 +1,16 @@
 let server = location.hash.substr(1);
 if (!server) {
-    const request = new XMLHttpRequest();
-    request.open('GET', '/port', false);  // `false` makes the request synchronous
-    request.send(null);
-    server = (location.protocol === "https:" ? "wss://" : "ws://") + location.hostname + ":" + (+request.response || 4565);
+    server = "wss://ws-chat.server.glitch.me";
 }
+function useThis() {
+    loginForm.url.value = (location.protocol === "https:" ? "wss://" : "ws://") + location.hostname + ":" + 4565;
+}
+
 let ws;
 
 let loginForm = document.querySelector("form#login");
 let msgForm = document.querySelector("form#msg");
+let nameForm = document.querySelector("form#name");
 let chatDiv = document.querySelector("div#chat");
 let usersDiv = document.querySelector("div#users");
 
@@ -51,13 +53,22 @@ function getWs(func) {
 loginForm.onsubmit = e => {
     e.preventDefault();
     let name = loginForm.name.value;
+    nameForm.name.value = name;
     server = loginForm.url.value;
-    ws = getWs(() => send(name));
+    ws = getWs(() => send("NAME|" + name));
 }
 msgForm.onsubmit = e => {
     e.preventDefault();
-    let msg = msgForm.msg.value;
+    let field = msgForm.msg;
+    let msg = field.value;
+    field.value = "";
+    field.focus();
     send("MESSAGE|" + msg);
+}
+nameForm.onsubmit = e => {
+    e.preventDefault();
+    let name = nameForm.name.value;
+    send("NAME|" + name);
 }
 
 
@@ -68,6 +79,7 @@ function msgHandler(m) {
         case "NAME_OK":
             loginForm.toggleAttribute("hide", true);
             msgForm.toggleAttribute("hide", false);
+            nameForm.toggleAttribute("hide", false);
             break;
         case "MESSAGE":
             chatDiv.innerHTML += `<div class="text-primary">&lt;${escapeHtml(data[1])}&gt; ${escapeHtml(data.filter((x, idx) => idx > 1).join("|"))}</div>`;
@@ -89,8 +101,8 @@ function msgHandler(m) {
             chatDiv.innerHTML += `<div class="text-warning">That name is taken. Try a different one.</div>`;
             chatDiv.scrollTop = chatDiv.scrollHeight;
             break;
-        case "ERR_INVALID_NAME":
-            chatDiv.innerHTML += `<div class="text-warning">That name is invalid. Try a different one.</div>`;
+        case "INVALID_NAME":
+            chatDiv.innerHTML += `<div class="text-danger">That name is invalid. Try a different one.</div>`;
             chatDiv.scrollTop = chatDiv.scrollHeight;
             break;
         case "VERSION":
@@ -110,6 +122,7 @@ function msgHandler(m) {
 function ws_closed() {
     loginForm.toggleAttribute("hide", false);
     msgForm.toggleAttribute("hide", true);
+    nameForm.toggleAttribute("hide", true);
     localStorage.DEBUG ? console.log("[!] WS_CLOSED") : false;
     usersDiv.innerHTML = "Disconnected";
     chatDiv.innerHTML = "Disconnected";
