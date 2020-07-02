@@ -31,7 +31,7 @@ const WS_HOST = process.env.WS_HOST || "0.0.0.0", // Constants with config
     HTTP_HOST = process.env.HTTP_HOST || "0.0.0.0",
     HTTP_PORT = process.env.HTTP_PORT || 3000,
     WS_ONLY = process.env.WS_ONLY || false,
-    VERSION = process.env.VERSION || "1.1.0",
+    VERSION = process.env.VERSION || "1.3.0",
     DEBUG = process.env.DEBUG || false;
 
 const users = [];
