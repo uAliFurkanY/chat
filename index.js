@@ -31,8 +31,8 @@ const WS_HOST = process.env.WS_HOST || "0.0.0.0", // Constants with config
     HTTP_HOST = process.env.HTTP_HOST || "0.0.0.0",
     HTTP_PORT = process.env.HTTP_PORT || 3000,
     WS_ONLY = process.env.WS_ONLY || false,
-    VERSION = "1.1.0",
-    DEBUG = true;
+    VERSION = process.env.VERSION || "1.1.0",
+    DEBUG = process.env.DEBUG || false;
 
 const users = [];
 
@@ -58,7 +58,7 @@ function getIndex(val, type = "ID") { // copied from old code
 }
 
 function broadcast(msg, silent) { // copied from old code
-    (DEBUG && !silent) ? console.log("[>] * " + msg) : false;
+    (DEBUG && !silent) ? console.log("[B] " + msg) : false;
     users.forEach(async user => user.c.send(msg + "\n"));
 }
 function sendMsg(name, message) { // no comment
@@ -88,8 +88,8 @@ wsServer.on("connection", c => {
     c.on("message", m => {
         m = m.trim(); // trim the message
         let data = m.split("|"); // message data
+        let invalid = false;
         i++; // packet count
-        DEBUG ? console.log("[<] " + (name ? name : "?") + " " + m) : false; // only for debugging
 
         if (i === 1) {
             // user wants to have a name
@@ -97,6 +97,7 @@ wsServer.on("connection", c => {
                 if (users.findIndex(usr => usr.name === m) > -1) {
                     c.send("NAME_TAKEN");
                     i = 0;
+                    invalid = true;
                 } else {
                     name = m; // name the user in the current scope
                     users.push({ // add the user to the users list
@@ -109,8 +110,8 @@ wsServer.on("connection", c => {
                 }
             } else {
                 c.send("ERR_INVALID_NAME");
-                c.close();
-                c.emit("close");
+                i = 0;
+                invalid = true;
             }
         } else {
             // get packet info
@@ -131,10 +132,12 @@ wsServer.on("connection", c => {
                     }
                     break;
                 default: // do not kick the user for this
+                    invalid = true;
                     c.send("WARN_INVALID_PACKET");
                     break;
             }
         }
+        (DEBUG && !invalid) ? console.log("[<] " + (name ? name : "?") + " " + m) : false; // only for debugging
     });
 
     c.on("close", () => {
