@@ -6,10 +6,12 @@ if (!server) {
     server = (location.protocol === "https:" ? "wss://" : "ws://") + location.hostname + ":" + (+request.response || 4565);
 }
 let ws;
+let listInterval;
 
 let loginForm = document.querySelector("form#login");
 let msgForm = document.querySelector("form#msg");
 let chatDiv = document.querySelector("div#chat");
+let usersDiv = document.querySelector("div#users");
 
 loginForm.url.value = server;
 
@@ -29,12 +31,20 @@ function escapeHtml(string) {
     });
 }
 
+function send(data) {
+    ws.send(data);
+    localStorage.DEBUG ? console.log("[>] " + data) : false;
+}
+
 function getWs(func) {
+    if (ws)
+        ws.close();
+
     let _ws = new WebSocket(server);
-    console.log("Connecting to: " + server);
+    localStorage.DEBUG ? console.log("[*] CONNECT " + server) : false;
     _ws.onmessage = msgHandler;
     _ws.onclose = ws_closed;
-    _ws.onerror = alert;
+    _ws.onerror = () => localStorage.DEBUG ? console.log("[!] CONNECTION_FAILED") : false;
     _ws.onopen = func;
     return _ws;
 };
@@ -43,13 +53,17 @@ loginForm.onsubmit = e => {
     e.preventDefault();
     let name = loginForm.name.value;
     server = loginForm.url.value;
-    ws = getWs(() => ws.send(name));
-
+    ws = getWs(() => {
+        send(name);
+        send("VERSION");
+        send("LIST_USERS");
+        listInterval = setInterval(() => send("LIST_USERS"), 1000);
+    });
 }
 msgForm.onsubmit = e => {
     e.preventDefault();
     let msg = msgForm.msg.value;
-    ws.send("MESSAGE|" + msg);
+    send("MESSAGE|" + msg);
 }
 
 
@@ -80,12 +94,30 @@ function msgHandler(m) {
         case "NAME_TAKEN":
             chatDiv.innerHTML += `<div class="text-warning">That name is taken. Try a different one.</div>`;
             chatDiv.scrollTop = chatDiv.scrollHeight;
+            break;
+        case "ERR_INVALID_NAME":
+            chatDiv.innerHTML += `<div class="text-warning">That name is invalid. Try a different one.</div>`;
+            chatDiv.scrollTop = chatDiv.scrollHeight;
+            break;
+        case "VERSION":
+            chatDiv.innerHTML += `<div class="text-info">The server is currently using version ${escapeHtml(data[1])}</div>`;
+            chatDiv.scrollTop = chatDiv.scrollHeight;
+            break;
+        case "LIST_USERS":
+            usersDiv.innerHTML = "";
+            data[1].split(",").forEach(x =>
+                usersDiv.innerHTML += `<div class="text-primary">${escapeHtml(x)}</div>`
+            );
+            break;
     }
-    console.log(m);
+    localStorage.DEBUG ? console.log("[<] " + m) : false;
 }
 
 function ws_closed() {
     loginForm.toggleAttribute("hide", false);
     msgForm.toggleAttribute("hide", true);
-    ws = getWs();
+    localStorage.DEBUG ? console.log("[!] WS_CLOSED") : false;
+    usersDiv.innerHTML = "Disconnected";
+    chatDiv.innerHTML = "Disconnected";
+    clearInterval(listInterval);
 }
