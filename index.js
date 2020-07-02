@@ -24,7 +24,6 @@ WARNING:
 const path = require("path");
 const ws = require("ws");
 const express = require("express");
-const { isObject, isArray } = require("util");
 const uuid = require("uuid");
 
 const WS_HOST = process.env.WS_HOST || "0.0.0.0", // Constants with config
