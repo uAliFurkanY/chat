@@ -1,6 +1,6 @@
 let server = location.hash.substr(1);
 if (!server) {
-    server = "wss://ws-chat.server.glitch.me";
+    server = "wss://ws-chat-server.glitch.me";
 }
 function useThis() {
     loginForm.url.value = (location.protocol === "https:" ? "wss://" : "ws://") + location.hostname + ":" + 4565;
