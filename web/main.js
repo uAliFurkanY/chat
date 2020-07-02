@@ -110,7 +110,11 @@ function msgHandler(m) {
             chatDiv.scrollTop = chatDiv.scrollHeight;
             break;
         case "VERSION":
-            chatDiv.innerHTML += `<div class="text-info">The server is currently using version ${escapeHtml(data[1])}</div>`;
+            chatDiv.innerHTML += `<div class="text-info">The server is currently using version ${escapeHtml(data[1])}.</div>`;
+            chatDiv.scrollTop = chatDiv.scrollHeight;
+            break;
+        case "WARN_INVALID_MSG":
+            chatDiv.innerHTML += `<div class="text-danger">Your message should be between 1 and 2048 characters.</div>`;
             chatDiv.scrollTop = chatDiv.scrollHeight;
             break;
         case "LIST_USERS":
