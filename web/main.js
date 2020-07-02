@@ -52,10 +52,7 @@ loginForm.onsubmit = e => {
     e.preventDefault();
     let name = loginForm.name.value;
     server = loginForm.url.value;
-    ws = getWs(() => {
-        send(name);
-        send("VERSION");
-    });
+    ws = getWs(() => send(name));
 }
 msgForm.onsubmit = e => {
     e.preventDefault();

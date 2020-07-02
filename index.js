@@ -31,7 +31,7 @@ const WS_HOST = process.env.WS_HOST || "0.0.0.0", // Constants with config
     HTTP_HOST = process.env.HTTP_HOST || "0.0.0.0",
     HTTP_PORT = process.env.HTTP_PORT || 3000,
     WS_ONLY = process.env.WS_ONLY || false,
-    VERSION = process.env.VERSION || "1.3.0",
+    VERSION = process.env.VERSION || "1.4.0",
     DEBUG = process.env.DEBUG || false;
 
 const users = [];
@@ -84,6 +84,7 @@ wsServer.on("connection", c => {
     let id = uuid.v4();
     let name;
     let lastMsg = Date.now();
+    c.send("VERSION|" + VERSION); // send the user the version constant
 
     c.on("message", m => {
         m = m.trim(); // trim the message
@@ -116,10 +117,8 @@ wsServer.on("connection", c => {
         } else {
             // get packet info
             let data = m.split("|"); // I couldn't write a comment for this sorry
+            // working on more packets
             switch (data[0]) {
-                case "VERSION":
-                    c.send("VERSION|" + VERSION); // send the user the version constant
-                    break;
                 case "MESSAGE":
                     if (Date.now() > lastMsg + 500) { // check cooldown
                         let msg = data.filter((t, idx) => idx > 0).join("|");
