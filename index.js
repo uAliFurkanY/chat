@@ -31,7 +31,7 @@ const WS_HOST = process.env.WS_HOST || "0.0.0.0", // Constants with config
     HTTP_HOST = process.env.HTTP_HOST || "0.0.0.0",
     HTTP_PORT = process.env.HTTP_PORT || 3000,
     WS_ONLY = process.env.WS_ONLY || false,
-    VERSION = "0.1.0-alpha",
+    VERSION = "1.1.0",
     DEBUG = true;
 
 const users = [];
@@ -57,8 +57,8 @@ function getIndex(val, type = "ID") { // copied from old code
     return idx > -1 ? idx : false;
 }
 
-function broadcast(msg) { // copied from old code
-    console.log(msg);
+function broadcast(msg, silent) { // copied from old code
+    (DEBUG && !silent) ? console.log("[>] * " + msg) : false;
     users.forEach(async user => user.c.send(msg + "\n"));
 }
 function sendMsg(name, message) { // no comment
@@ -76,6 +76,7 @@ const wsServer = new ws.Server({ // Start WS server
     host: WS_HOST
 }, () => {
     console.log("WebSockets Server Listening on " + WS_HOST + ":" + WS_PORT);
+    setInterval(() => broadcast("LIST_USERS|" + users.map(x => x.name).join(), true), 1000);
 });
 
 wsServer.on("connection", c => {
@@ -88,7 +89,7 @@ wsServer.on("connection", c => {
         m = m.trim(); // trim the message
         let data = m.split("|"); // message data
         i++; // packet count
-        DEBUG ? console.log(m) : false; // only for debugging
+        DEBUG ? console.log("[<] " + (name ? name : "?") + " " + m) : false; // only for debugging
 
         if (i === 1) {
             // user wants to have a name
@@ -115,9 +116,6 @@ wsServer.on("connection", c => {
             // get packet info
             let data = m.split("|"); // I couldn't write a comment for this sorry
             switch (data[0]) {
-                case "LIST_USERS": // send the username list
-                    c.send("LIST_USERS|" + users.map(x => x.name).join()); // ok this one isn't that bad
-                    break;
                 case "VERSION":
                     c.send("VERSION|" + VERSION); // send the user the version constant
                     break;

@@ -6,7 +6,6 @@ if (!server) {
     server = (location.protocol === "https:" ? "wss://" : "ws://") + location.hostname + ":" + (+request.response || 4565);
 }
 let ws;
-let listInterval;
 
 let loginForm = document.querySelector("form#login");
 let msgForm = document.querySelector("form#msg");
@@ -56,8 +55,6 @@ loginForm.onsubmit = e => {
     ws = getWs(() => {
         send(name);
         send("VERSION");
-        send("LIST_USERS");
-        listInterval = setInterval(() => send("LIST_USERS"), 1000);
     });
 }
 msgForm.onsubmit = e => {
@@ -119,5 +116,4 @@ function ws_closed() {
     localStorage.DEBUG ? console.log("[!] WS_CLOSED") : false;
     usersDiv.innerHTML = "Disconnected";
     chatDiv.innerHTML = "Disconnected";
-    clearInterval(listInterval);
 }
