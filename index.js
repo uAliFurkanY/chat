@@ -31,7 +31,7 @@ const WS_HOST = process.env.WS_HOST || "0.0.0.0", // Constants with config
     HTTP_HOST = process.env.HTTP_HOST || "0.0.0.0",
     HTTP_PORT = process.env.HTTP_PORT || 3000,
     WS_ONLY = process.env.WS_ONLY || false,
-    VERSION = process.env.VERSION || "2.0.0",
+    VERSION = process.env.VERSION || "2.1.0",
     DEBUG = process.env.DEBUG || false;
 
 const users = [];
@@ -108,7 +108,9 @@ wsServer.on("connection", c => {
                         });
                         broadcast("USER_JOIN|" + name);
                     } else {
-                        users[getIndex(id)].name = name;
+                        let user = users[getIndex(id)]
+                        broadcast("NAME_CHANGE|" + user.name + "|" + name);
+                        user.name = name;
                     }
                     c.send("NAME_OK");
                     logged = true; // make the client accept packets from the user

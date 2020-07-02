@@ -93,6 +93,10 @@ function msgHandler(m) {
             chatDiv.innerHTML += `<div class="text-secondary">[LEFT] ${escapeHtml(data[1])}</div>`;
             chatDiv.scrollTop = chatDiv.scrollHeight;
             break;
+        case "NAME_CHANGE":
+            chatDiv.innerHTML += `<div class="text-secondary">[NAME] ${escapeHtml(data[1])} -> ${escapeHtml(data[2])}</div>`;
+            chatDiv.scrollTop = chatDiv.scrollHeight;
+            break;
         case "WARN_DELAY":
             chatDiv.innerHTML += `<div class="text-warning">You're sending messages too fast.</div>`;
             chatDiv.scrollTop = chatDiv.scrollHeight;
